@@ -273,86 +273,110 @@ function exporterExcel() {
     const fraisEtat = gainBrut * 0.15;
     const gainNet = gainBrut - fraisEtat;
 
-    // Créer le contenu Excel bien structuré
-    const csvContent = [
-        // En-tête principal
-        ['SIMULATION BOURSIÈRE - RAPPORT DÉTAILLÉ'],
-        [''],
-        
-        // Informations de base
-        ['INFORMATIONS DE LA TRANSACTION', ''],
-        ['Valeur:', valeur],
-        ['Date de simulation:', new Date().toLocaleDateString('fr-FR')],
-        [''],
-        
-        // Données d'entrée
-        ['DONNÉES DE BASE', ''],
-        ['Quantité d\'actions:', quantite.toLocaleString('fr-FR')],
-        ['Cours d\'achat:', coursAchat.toFixed(2) + ' MAD'],
-        ['Cours de vente:', coursVente.toFixed(2) + ' MAD'],
-        [''],
-        
-        // CALCUL DÉTAILLÉ - ACHAT
-        ['DÉTAIL DE L\'OPÉRATION D\'ACHAT', 'MONTANT (MAD)'],
-        ['Montant brut d\'achat:', montantBrutAchat.toFixed(2)],
-        ['Frais de transaction (0.77%):', fraisAchat.toFixed(2)],
-        ['→ Commission (0.6%):', (montantBrutAchat * 0.006).toFixed(2)],
-        ['→ Impôt de bourse (0.1%):', (montantBrutAchat * 0.001).toFixed(2)],
-        ['→ TVA (10% sur frais):', ((montantBrutAchat * 0.007) * 0.10).toFixed(2)],
-        ['MONTANT NET DÉBURSÉ (Achat):', montantNetAchat.toFixed(2)],
-        [''],
-        
-        // CALCUL DÉTAILLÉ - VENTE
-        ['DÉTAIL DE L\'OPÉRATION DE VENTE', 'MONTANT (MAD)'],
-        ['Montant brut de vente:', montantBrutVente.toFixed(2)],
-        ['Frais de transaction (0.77%):', fraisVente.toFixed(2)],
-        ['→ Commission (0.6%):', (montantBrutVente * 0.006).toFixed(2)],
-        ['→ Impôt de bourse (0.1%):', (montantBrutVente * 0.001).toFixed(2)],
-        ['→ TVA (10% sur frais):', ((montantBrutVente * 0.007) * 0.10).toFixed(2)],
-        ['MONTANT NET PERÇU (Vente):', montantNetVente.toFixed(2)],
-        [''],
-        
-        // RÉSULTAT FINAL
-        ['SYNTHÈSE DU RÉSULTAT', 'MONTANT (MAD)'],
-        ['Gain brut (avant impôt):', gainBrut.toFixed(2)],
-        ['Frais d\'état (15%):', fraisEtat.toFixed(2)],
-        ['GAIN NET FINAL:', gainNet.toFixed(2)],
-        [''],
-        
-        // INDICATEURS DE PERFORMANCE
-        ['INDICATEURS DE PERFORMANCE', 'VALEUR'],
-        ['Rendement net:', ((gainNet / montantNetAchat) * 100).toFixed(2) + '%'],
-        ['Seuil de rentabilité:', (montantNetAchat / quantite).toFixed(2) + ' MAD'],
-        ['Marge brute:', ((coursVente - coursAchat) / coursAchat * 100).toFixed(2) + '%'],
-        [''],
+    // Créer le contenu HTML pour Excel
+    const htmlContent = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<!--[if gte mso 9]>
+<xml>
+<x:ExcelWorkbook>
+<x:ExcelWorksheets>
+<x:ExcelWorksheet>
+<x:Name>Simulation Boursière</x:Name>
+<x:WorksheetOptions>
+<x:DisplayGridlines/>
+</x:WorksheetOptions>
+</x:ExcelWorksheet>
+</x:ExcelWorksheets>
+</x:ExcelWorkbook>
+</xml>
+<![endif]-->
+<style>
+table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; }
+th { background-color: #2c3e50; color: white; padding: 10px; text-align: left; }
+td { padding: 8px; border: 1px solid #ddd; }
+.section-title { background-color: #34495e; color: white; font-weight: bold; }
+.total { background-color: #ecf0f1; font-weight: bold; }
+.result-positive { background-color: #d4edda; color: #155724; }
+.result-negative { background-color: #f8d7da; color: #721c24; }
+</style>
+</head>
+<body>
+    <h1>RAPPORT DE SIMULATION BOURSIÈRE</h1>
+    
+    <table>
+        <tr><th colspan="2">INFORMATIONS DE LA TRANSACTION</th></tr>
+        <tr><td><strong>Valeur:</strong></td><td>${valeur}</td></tr>
+        <tr><td><strong>Date de simulation:</strong></td><td>${new Date().toLocaleDateString('fr-FR')}</td></tr>
+    </table>
 
-        // PIED DE PAGE
-        ['Généré par Calculateur Boursier - ' + new Date().toLocaleString('fr-FR')]
-    ];
+    <br>
 
-    // Convertir en CSV
-    const csv = csvContent.map(row => {
-        // Gérer les lignes avec une seule colonne
-        if (row.length === 1) {
-            return `"${row[0]}"`;
-        }
-        // Gérer les lignes avec deux colonnes
-        return row.map(cell => `"${cell}"`).join(',');
-    }).join('\n');
+    <table>
+        <tr><th colspan="2">DONNÉES DE BASE</th></tr>
+        <tr><td>Quantité d'actions:</td><td>${quantite.toLocaleString('fr-FR')}</td></tr>
+        <tr><td>Cours d'achat:</td><td>${coursAchat.toFixed(2)} MAD</td></tr>
+        <tr><td>Cours de vente:</td><td>${coursVente.toFixed(2)} MAD</td></tr>
+    </table>
 
-    // Créer et télécharger le fichier
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    <br>
+
+    <table>
+        <tr><th colspan="2">DÉTAIL DE L'OPÉRATION D'ACHAT</th></tr>
+        <tr><td>Montant brut d'achat:</td><td>${montantBrutAchat.toFixed(2)} MAD</td></tr>
+        <tr><td>Frais de transaction (0.77%):</td><td>${fraisAchat.toFixed(2)} MAD</td></tr>
+        <tr class="total"><td>MONTANT NET DÉBURSÉ:</td><td><strong>${montantNetAchat.toFixed(2)} MAD</strong></td></tr>
+    </table>
+
+    <br>
+
+    <table>
+        <tr><th colspan="2">DÉTAIL DE L'OPÉRATION DE VENTE</th></tr>
+        <tr><td>Montant brut de vente:</td><td>${montantBrutVente.toFixed(2)} MAD</td></tr>
+        <tr><td>Frais de transaction (0.77%):</td><td>${fraisVente.toFixed(2)} MAD</td></tr>
+        <tr class="total"><td>MONTANT NET PERÇU:</td><td><strong>${montantNetVente.toFixed(2)} MAD</strong></td></tr>
+    </table>
+
+    <br>
+
+    <table>
+        <tr><th colspan="2">SYNTHÈSE DU RÉSULTAT</th></tr>
+        <tr><td>Gain brut (avant impôt):</td><td>${gainBrut.toFixed(2)} MAD</td></tr>
+        <tr><td>Frais d'état (15%):</td><td>${fraisEtat.toFixed(2)} MAD</td></tr>
+        <tr class="total ${gainNet >= 0 ? 'result-positive' : 'result-negative'}">
+            <td><strong>GAIN NET FINAL:</strong></td>
+            <td><strong>${gainNet.toFixed(2)} MAD</strong></td>
+        </tr>
+    </table>
+
+    <br>
+
+    <table>
+        <tr><th colspan="2">INDICATEURS DE PERFORMANCE</th></tr>
+        <tr><td>Rendement net:</td><td>${((gainNet / montantNetAchat) * 100).toFixed(2)}%</td></tr>
+        <tr><td>Seuil de rentabilité:</td><td>${(montantNetAchat / quantite).toFixed(2)} MAD</td></tr>
+        <tr><td>Marge brute:</td><td>${((coursVente - coursAchat) / coursAchat * 100).toFixed(2)}%</td></tr>
+    </table>
+
+    <br>
+    <p><em>Généré par Calculateur Boursier - ${new Date().toLocaleString('fr-FR')}</em></p>
+</body>
+</html>`;
+
+    // Créer et télécharger le fichier HTML (ouvert par Excel)
+    const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `Rapport_${valeur}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `Rapport_Detaille_${valeur}_${new Date().toISOString().split('T')[0]}.xls`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
     // Message de confirmation
     setTimeout(() => {
-        alert(`Rapport Excel généré avec succès!\n\nFichier: Rapport_${valeur}_${new Date().toISOString().split('T')[0]}.csv`);
+        alert(`Rapport Excel détaillé généré avec succès!\n\nLe fichier s'ouvrira dans Excel avec une mise en forme professionnelle.`);
     }, 100);
 }
 
