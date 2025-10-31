@@ -3,118 +3,330 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulation Boursière - Par Cours Vente</title>
+    <title>Calculateur de Gain Boursier</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; 
+            padding: 20px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .form-container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-        input, select {
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 500px;
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
         }
-        button {
-            background-color: #007cba;
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        h1 { 
+            text-align: center; 
+            color: #333; 
+            margin-bottom: 30px;
+        }
+        .form-group { 
+            margin-bottom: 20px; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: bold;
+            color: #555;
+        }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 2px solid #ddd; 
+            border-radius: 5px; 
             font-size: 16px;
-            margin-right: 10px;
+        }
+        input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        button { 
+            width: 100%; 
+            padding: 15px; 
+            background: #667eea; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            font-size: 16px; 
+            cursor: pointer;
+            margin-bottom: 10px;
         }
         button:hover {
-            background-color: #005a87;
+            background: #5a6fd8;
         }
         .result {
             margin-top: 20px;
             padding: 15px;
             border-radius: 5px;
-            font-weight: bold;
             text-align: center;
+            font-weight: bold;
+            display: none;
         }
-        .gain-positif {
-            background-color: #d4edda;
+        .positive {
+            background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
-        .gain-negatif {
-            background-color: #f8d7da;
+        .negative {
+            background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-        .gain-neutre {
-            background-color: #e2e3e5;
+        .neutral {
+            background: #e2e3e5;
             color: #383d41;
             border: 1px solid #d6d8db;
         }
-        .hidden {
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
             display: none;
         }
     </style>
 </head>
 <body>
-    <div class="form-container">
-        <h1>Simulation Boursière - Par Cours Vente</h1>
+    <div class="container">
+        <h1>📊 Calculateur de Gain Boursier</h1>
         
         <div class="form-group">
             <label for="valeur">Nom de la valeur :</label>
             <input type="text" id="valeur" placeholder="Ex: ABC Corporation">
+            <div id="errorValeur" class="error"></div>
         </div>
 
         <div class="form-group">
             <label for="quantite">Quantité :</label>
-            <input type="number" id="quantite" min="1" placeholder="Ex: 1000">
+            <input type="number" id="quantite" placeholder="Ex: 1000" min="1">
+            <div id="errorQuantite" class="error"></div>
         </div>
 
         <div class="form-group">
             <label for="coursAchat">Cours d'achat (MAD) :</label>
-            <input type="number" id="coursAchat" min="0.01" step="0.01" placeholder="Ex: 150.50">
+            <input type="number" id="coursAchat" step="0.01" placeholder="Ex: 150.50" min="0.01">
+            <div id="errorCoursAchat" class="error"></div>
         </div>
 
         <div class="form-group">
             <label for="coursVente">Cours de vente (MAD) :</label>
-            <input type="number" id="coursVente" min="0.01" step="0.01" placeholder="Ex: 160.75">
+            <input type="number" id="coursVente" step="0.01" placeholder="Ex: 160.75" min="0.01">
+            <div id="errorCoursVente" class="error"></div>
         </div>
 
-        <div class="form-group">
-            <button onclick="calculerGainNet()">Calculer le Gain NET</button>
-            <button onclick="nouvelleSimulation()" style="background-color: #6c757d;">Nouvelle Simulation</button>
-            <button onclick="exporterExcel()" style="background-color: #28a745;">Exporter vers Excel</button>
-        </div>
+        <button onclick="calculerGain()">Calculer le Gain NET</button>
+        <button onclick="reinitialiser()" style="background: #6c757d;">Nouvelle Simulation</button>
+        <button onclick="exporterExcel()" style="background: #28a745;">Exporter vers Excel</button>
 
-        <div id="resultat" class="result hidden">
-            <!-- Résultat affiché ici -->
-        </div>
-
-        <div id="detailsCalcul" class="form-group" style="display: none;">
-            <h3>Détails du calcul :</h3>
-            <div id="detailsContent"></div>
-        </div>
+        <div id="resultat" class="result"></div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // Fonction de validation améliorée
+        function validerFormulaire() {
+            let isValid = true;
+            
+            // Réinitialiser les erreurs
+            document.querySelectorAll('.error').forEach(error => {
+                error.style.display = 'none';
+                error.textContent = '';
+            });
+
+            // Validation du nom de la valeur
+            const valeur = document.getElementById('valeur').value.trim();
+            if (valeur === '') {
+                afficherErreur('errorValeur', 'Veuillez saisir le nom de la valeur');
+                isValid = false;
+            }
+
+            // Validation de la quantité
+            const quantite = document.getElementById('quantite').value;
+            if (quantite === '' || isNaN(quantite)) {
+                afficherErreur('errorQuantite', 'Veuillez saisir une quantité valide');
+                isValid = false;
+            } else if (parseFloat(quantite) <= 0) {
+                afficherErreur('errorQuantite', 'La quantité doit être supérieure à zéro');
+                isValid = false;
+            }
+
+            // Validation du cours d'achat
+            const coursAchat = document.getElementById('coursAchat').value;
+            if (coursAchat === '' || isNaN(coursAchat)) {
+                afficherErreur('errorCoursAchat', 'Veuillez saisir un cours d\'achat valide');
+                isValid = false;
+            } else if (parseFloat(coursAchat) <= 0) {
+                afficherErreur('errorCoursAchat', 'Le cours d\'achat doit être supérieur à zéro');
+                isValid = false;
+            }
+
+            // Validation du cours de vente
+            const coursVente = document.getElementById('coursVente').value;
+            if (coursVente === '' || isNaN(coursVente)) {
+                afficherErreur('errorCoursVente', 'Veuillez saisir un cours de vente valide');
+                isValid = false;
+            } else if (parseFloat(coursVente) <= 0) {
+                afficherErreur('errorCoursVente', 'Le cours de vente doit être supérieur à zéro');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function afficherErreur(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function calculerFrais(montant) {
+            const commission = montant * 0.006;      // 0.6%
+            const impot = montant * 0.001;           // 0.1%
+            const tva = (commission + impot) * 0.10; // 10%
+            return commission + impot + tva;
+        }
+
+        function calculerGain() {
+            // Valider le formulaire d'abord
+            if (!validerFormulaire()) {
+                return;
+            }
+
+            // Récupérer les valeurs (maintenant validées)
+            const valeur = document.getElementById('valeur').value;
+            const quantite = parseFloat(document.getElementById('quantite').value);
+            const coursAchat = parseFloat(document.getElementById('coursAchat').value);
+            const coursVente = parseFloat(document.getElementById('coursVente').value);
+
+            // Calculs détaillés
+            const montantBrutAchat = quantite * coursAchat;
+            const fraisAchat = calculerFrais(montantBrutAchat);
+            const montantNetAchat = montantBrutAchat + fraisAchat;
+
+            const montantBrutVente = quantite * coursVente;
+            const fraisVente = calculerFrais(montantBrutVente);
+            const montantNetVente = montantBrutVente - fraisVente;
+
+            const gainBrut = montantNetVente - montantNetAchat;
+            const gainNet = gainBrut * 0.85; // 15% de frais d'état
+
+            // Afficher résultat
+            const resultat = document.getElementById('resultat');
+            const icone = gainNet > 0 ? '📈' : gainNet < 0 ? '📉' : '⚖️';
+            const classe = gainNet > 0 ? 'positive' : gainNet < 0 ? 'negative' : 'neutral';
+            
+            resultat.innerHTML = `
+                <strong>${valeur}</strong><br>
+                Gain NET: <strong>${gainNet.toFixed(2)} MAD</strong>
+                ${icone}
+                <br><small style="font-weight: normal; display: block; margin-top: 10px;">
+                    Quantité: ${quantite} | Achat: ${coursAchat.toFixed(2)} MAD | Vente: ${coursVente.toFixed(2)} MAD
+                </small>
+            `;
+            resultat.className = `result ${classe}`;
+            resultat.style.display = 'block';
+        }
+
+        function reinitialiser() {
+            // Réinitialiser les champs
+            document.getElementById('valeur').value = '';
+            document.getElementById('quantite').value = '';
+            document.getElementById('coursAchat').value = '';
+            document.getElementById('coursVente').value = '';
+            
+            // Cacher les erreurs
+            document.querySelectorAll('.error').forEach(error => {
+                error.style.display = 'none';
+            });
+            
+            // Cacher le résultat
+            document.getElementById('resultat').style.display = 'none';
+        }
+
+        function exporterExcel() {
+            if (!validerFormulaire()) {
+                return;
+            }
+
+            const valeur = document.getElementById('valeur').value;
+            const quantite = document.getElementById('quantite').value;
+            const coursAchat = document.getElementById('coursAchat').value;
+            const coursVente = document.getElementById('coursVente').value;
+
+            // Recréer les calculs pour l'export
+            const quantiteNum = parseFloat(quantite);
+            const coursAchatNum = parseFloat(coursAchat);
+            const coursVenteNum = parseFloat(coursVente);
+            
+            const montantBrutAchat = quantiteNum * coursAchatNum;
+            const fraisAchat = calculerFrais(montantBrutAchat);
+            const montantNetAchat = montantBrutAchat + fraisAchat;
+            const montantBrutVente = quantiteNum * coursVenteNum;
+            const fraisVente = calculerFrais(montantBrutVente);
+            const montantNetVente = montantBrutVente - fraisVente;
+            const gainBrut = montantNetVente - montantNetAchat;
+            const gainNet = gainBrut * 0.85;
+
+            // Créer le contenu CSV
+            const csvContent = [
+                ['Simulation Boursière - Export'],
+                ['Valeur', 'Quantité', 'Cours Achat (MAD)', 'Cours Vente (MAD)', 'Gain NET (MAD)'],
+                [valeur, quantite, coursAchat, coursVente, gainNet.toFixed(2)],
+                [],
+                ['DÉTAILS DU CALCUL'],
+                ['Montant brut achat:', montantBrutAchat.toFixed(2) + ' MAD'],
+                ['Frais achat:', fraisAchat.toFixed(2) + ' MAD'],
+                ['Montant net achat:', montantNetAchat.toFixed(2) + ' MAD'],
+                ['Montant brut vente:', montantBrutVente.toFixed(2) + ' MAD'],
+                ['Frais vente:', fraisVente.toFixed(2) + ' MAD'],
+                ['Montant net vente:', montantNetVente.toFixed(2) + ' MAD'],
+                ['Gain brut:', gainBrut.toFixed(2) + ' MAD'],
+                ['Frais d\'état (15%):', (gainBrut * 0.15).toFixed(2) + ' MAD'],
+                ['GAIN NET:', gainNet.toFixed(2) + ' MAD']
+            ].map(row => row.join(',')).join('\n');
+
+            // Télécharger le fichier
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `simulation_${valeur}_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Calcul automatique lors de la saisie
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = ['quantite', 'coursAchat', 'coursVente'];
+            
+            inputs.forEach(function(id) {
+                document.getElementById(id).addEventListener('input', function() {
+                    // Attendre un peu après la saisie
+                    setTimeout(function() {
+                        const valeur = document.getElementById('valeur').value.trim();
+                        const quantite = document.getElementById('quantite').value;
+                        const coursAchat = document.getElementById('coursAchat').value;
+                        const coursVente = document.getElementById('coursVente').value;
+                        
+                        // Calculer seulement si tous les champs sont remplis et valides
+                        if (valeur && quantite && coursAchat && coursVente) {
+                            if (!isNaN(quantite) && !isNaN(coursAchat) && !isNaN(coursVente) &&
+                                parseFloat(quantite) > 0 && parseFloat(coursAchat) > 0 && parseFloat(coursVente) > 0) {
+                                calculerGain();
+                            }
+                        }
+                    }, 500);
+                });
+            });
+        });
+    </script>
 </body>
 </html>
