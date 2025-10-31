@@ -249,59 +249,112 @@
             document.getElementById('resultat').style.display = 'none';
         }
 
-        function exporterExcel() {
-            if (!validerFormulaire()) {
-                return;
-            }
+function exporterExcel() {
+    if (!validerFormulaire()) {
+        return;
+    }
 
-            const valeur = document.getElementById('valeur').value;
-            const quantite = document.getElementById('quantite').value;
-            const coursAchat = document.getElementById('coursAchat').value;
-            const coursVente = document.getElementById('coursVente').value;
+    // Récupérer les données
+    const valeur = document.getElementById('valeur').value;
+    const quantite = parseFloat(document.getElementById('quantite').value);
+    const coursAchat = parseFloat(document.getElementById('coursAchat').value);
+    const coursVente = parseFloat(document.getElementById('coursVente').value);
 
-            // Recréer les calculs pour l'export
-            const quantiteNum = parseFloat(quantite);
-            const coursAchatNum = parseFloat(coursAchat);
-            const coursVenteNum = parseFloat(coursVente);
-            
-            const montantBrutAchat = quantiteNum * coursAchatNum;
-            const fraisAchat = calculerFrais(montantBrutAchat);
-            const montantNetAchat = montantBrutAchat + fraisAchat;
-            const montantBrutVente = quantiteNum * coursVenteNum;
-            const fraisVente = calculerFrais(montantBrutVente);
-            const montantNetVente = montantBrutVente - fraisVente;
-            const gainBrut = montantNetVente - montantNetAchat;
-            const gainNet = gainBrut * 0.85;
+    // Effectuer les calculs
+    const montantBrutAchat = quantite * coursAchat;
+    const fraisAchat = calculerFrais(montantBrutAchat);
+    const montantNetAchat = montantBrutAchat + fraisAchat;
 
-            // Créer le contenu CSV
-            const csvContent = [
-                ['Simulation Boursière - Export'],
-                ['Valeur', 'Quantité', 'Cours Achat (MAD)', 'Cours Vente (MAD)', 'Gain NET (MAD)'],
-                [valeur, quantite, coursAchat, coursVente, gainNet.toFixed(2)],
-                [],
-                ['DÉTAILS DU CALCUL'],
-                ['Montant brut achat:', montantBrutAchat.toFixed(2) + ' MAD'],
-                ['Frais achat:', fraisAchat.toFixed(2) + ' MAD'],
-                ['Montant net achat:', montantNetAchat.toFixed(2) + ' MAD'],
-                ['Montant brut vente:', montantBrutVente.toFixed(2) + ' MAD'],
-                ['Frais vente:', fraisVente.toFixed(2) + ' MAD'],
-                ['Montant net vente:', montantNetVente.toFixed(2) + ' MAD'],
-                ['Gain brut:', gainBrut.toFixed(2) + ' MAD'],
-                ['Frais d\'état (15%):', (gainBrut * 0.15).toFixed(2) + ' MAD'],
-                ['GAIN NET:', gainNet.toFixed(2) + ' MAD']
-            ].map(row => row.join(',')).join('\n');
+    const montantBrutVente = quantite * coursVente;
+    const fraisVente = calculerFrais(montantBrutVente);
+    const montantNetVente = montantBrutVente - fraisVente;
 
-            // Télécharger le fichier
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `simulation_${valeur}_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+    const gainBrut = montantNetVente - montantNetAchat;
+    const fraisEtat = gainBrut * 0.15;
+    const gainNet = gainBrut - fraisEtat;
+
+    // Créer le contenu Excel bien structuré
+    const csvContent = [
+        // En-tête principal
+        ['SIMULATION BOURSIÈRE - RAPPORT DÉTAILLÉ'],
+        [''],
+        
+        // Informations de base
+        ['INFORMATIONS DE LA TRANSACTION', ''],
+        ['Valeur:', valeur],
+        ['Date de simulation:', new Date().toLocaleDateString('fr-FR')],
+        [''],
+        
+        // Données d'entrée
+        ['DONNÉES DE BASE', ''],
+        ['Quantité d\'actions:', quantite.toLocaleString('fr-FR')],
+        ['Cours d\'achat:', coursAchat.toFixed(2) + ' MAD'],
+        ['Cours de vente:', coursVente.toFixed(2) + ' MAD'],
+        [''],
+        
+        // CALCUL DÉTAILLÉ - ACHAT
+        ['DÉTAIL DE L\'OPÉRATION D\'ACHAT', 'MONTANT (MAD)'],
+        ['Montant brut d\'achat:', montantBrutAchat.toFixed(2)],
+        ['Frais de transaction (0.77%):', fraisAchat.toFixed(2)],
+        ['→ Commission (0.6%):', (montantBrutAchat * 0.006).toFixed(2)],
+        ['→ Impôt de bourse (0.1%):', (montantBrutAchat * 0.001).toFixed(2)],
+        ['→ TVA (10% sur frais):', ((montantBrutAchat * 0.007) * 0.10).toFixed(2)],
+        ['MONTANT NET DÉBURSÉ (Achat):', montantNetAchat.toFixed(2)],
+        [''],
+        
+        // CALCUL DÉTAILLÉ - VENTE
+        ['DÉTAIL DE L\'OPÉRATION DE VENTE', 'MONTANT (MAD)'],
+        ['Montant brut de vente:', montantBrutVente.toFixed(2)],
+        ['Frais de transaction (0.77%):', fraisVente.toFixed(2)],
+        ['→ Commission (0.6%):', (montantBrutVente * 0.006).toFixed(2)],
+        ['→ Impôt de bourse (0.1%):', (montantBrutVente * 0.001).toFixed(2)],
+        ['→ TVA (10% sur frais):', ((montantBrutVente * 0.007) * 0.10).toFixed(2)],
+        ['MONTANT NET PERÇU (Vente):', montantNetVente.toFixed(2)],
+        [''],
+        
+        // RÉSULTAT FINAL
+        ['SYNTHÈSE DU RÉSULTAT', 'MONTANT (MAD)'],
+        ['Gain brut (avant impôt):', gainBrut.toFixed(2)],
+        ['Frais d\'état (15%):', fraisEtat.toFixed(2)],
+        ['GAIN NET FINAL:', gainNet.toFixed(2)],
+        [''],
+        
+        // INDICATEURS DE PERFORMANCE
+        ['INDICATEURS DE PERFORMANCE', 'VALEUR'],
+        ['Rendement net:', ((gainNet / montantNetAchat) * 100).toFixed(2) + '%'],
+        ['Seuil de rentabilité:', (montantNetAchat / quantite).toFixed(2) + ' MAD'],
+        ['Marge brute:', ((coursVente - coursAchat) / coursAchat * 100).toFixed(2) + '%'],
+        [''],
+
+        // PIED DE PAGE
+        ['Généré par Calculateur Boursier - ' + new Date().toLocaleString('fr-FR')]
+    ];
+
+    // Convertir en CSV
+    const csv = csvContent.map(row => {
+        // Gérer les lignes avec une seule colonne
+        if (row.length === 1) {
+            return `"${row[0]}"`;
         }
+        // Gérer les lignes avec deux colonnes
+        return row.map(cell => `"${cell}"`).join(',');
+    }).join('\n');
+
+    // Créer et télécharger le fichier
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Rapport_${valeur}_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Message de confirmation
+    setTimeout(() => {
+        alert(`Rapport Excel généré avec succès!\n\nFichier: Rapport_${valeur}_${new Date().toISOString().split('T')[0]}.csv`);
+    }, 100);
+}
 
         // Calcul automatique lors de la saisie
         document.addEventListener('DOMContentLoaded', function() {
