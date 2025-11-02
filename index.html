@@ -392,30 +392,9 @@ td { padding: 8px; border: 1px solid #ddd; }
             }, 100);
         }
 
-        // Calcul automatique lors de la saisie
-        document.addEventListener('DOMContentLoaded', function() {
-            const inputs = ['quantite', 'coursAchat', 'coursVente'];
-            
-            inputs.forEach(function(id) {
-                document.getElementById(id).addEventListener('input', function() {
-                    // Attendre un peu après la saisie
-                    setTimeout(function() {
-                        const valeur = document.getElementById('valeur').value.trim();
-                        const quantite = document.getElementById('quantite').value;
-                        const coursAchat = document.getElementById('coursAchat').value;
-                        const coursVente = document.getElementById('coursVente').value;
-                        
-                        // Calculer seulement si tous les champs sont remplis et valides
-                        if (valeur && quantite && coursAchat && coursVente) {
-                            if (!isNaN(quantite) && !isNaN(coursAchat) && !isNaN(coursVente) &&
-                                parseFloat(quantite) > 0 && parseFloat(coursAchat) > 0 && parseFloat(coursVente) > 0) {
-                                calculerGain();
-                            }
-                        }
-                    }, 500);
-                });
-            });
-        });
+        // CALCUL AUTOMATIQUE DÉSACTIVÉ - Code supprimé
+        // Le calcul ne se fera plus automatiquement pendant la saisie
+        // Il faut maintenant cliquer sur "Calculer le Gain NET" pour voir le résultat
     </script>
 </body>
 </html>
