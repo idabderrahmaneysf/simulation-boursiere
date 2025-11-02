@@ -74,13 +74,6 @@
         .btn-success:hover {
             background: #218838;
         }
-        .btn-warning {
-            background: #ffc107;
-            color: #212529;
-        }
-        .btn-warning:hover {
-            background: #e0a800;
-        }
         .result {
             margin-top: 20px;
             padding: 15px;
@@ -110,27 +103,12 @@
             margin-top: 5px;
             display: none;
         }
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            display: none;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📊 Calculateur de Gain Boursier</h1>
         
-        <!-- NOUVEAU CHAMP EMAIL -->
-        <div class="form-group">
-            <label for="email">Votre adresse email :</label>
-            <input type="email" id="email" placeholder="exemple@email.com">
-            <div id="errorEmail" class="error"></div>
-        </div>
-
         <div class="form-group">
             <label for="valeur">Nom de la valeur :</label>
             <input type="text" id="valeur" placeholder="Ex: ABC Corporation">
@@ -155,24 +133,15 @@
             <div id="errorCoursVente" class="error"></div>
         </div>
 
-        <!-- BOUTONS AVEC NOUVEAU BOUTON EMAIL -->
         <button onclick="calculerGain()">Calculer le Gain NET</button>
         <button onclick="reinitialiser()" class="btn-secondary">Nouvelle Simulation</button>
         <button onclick="exporterExcel()" class="btn-success">Exporter vers Excel</button>
-        <button onclick="envoyerParEmail()" class="btn-warning">📧 Envoyer par Email</button>
 
         <div id="resultat" class="result"></div>
-        <div id="messageSuccess" class="success-message"></div>
     </div>
 
     <script>
-        // Fonction de validation d'email
-        function validerEmail(email) {
-            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return regex.test(email);
-        }
-
-        // Fonction de validation améliorée avec email
+        // Fonction de validation améliorée
         function validerFormulaire() {
             let isValid = true;
             
@@ -181,16 +150,6 @@
                 error.style.display = 'none';
                 error.textContent = '';
             });
-
-            // Validation de l'email
-            const email = document.getElementById('email').value.trim();
-            if (email === '') {
-                afficherErreur('errorEmail', 'Veuillez saisir votre adresse email');
-                isValid = false;
-            } else if (!validerEmail(email)) {
-                afficherErreur('errorEmail', 'Veuillez saisir une adresse email valide');
-                isValid = false;
-            }
 
             // Validation du nom de la valeur
             const valeur = document.getElementById('valeur').value.trim();
@@ -288,7 +247,6 @@
 
         function reinitialiser() {
             // Réinitialiser les champs
-            document.getElementById('email').value = '';
             document.getElementById('valeur').value = '';
             document.getElementById('quantite').value = '';
             document.getElementById('coursAchat').value = '';
@@ -299,9 +257,8 @@
                 error.style.display = 'none';
             });
             
-            // Cacher le résultat et messages
+            // Cacher le résultat
             document.getElementById('resultat').style.display = 'none';
-            document.getElementById('messageSuccess').style.display = 'none';
         }
 
         function exporterExcel() {
@@ -435,98 +392,21 @@ td { padding: 8px; border: 1px solid #ddd; }
             }, 100);
         }
 
-        // NOUVELLE FONCTION POUR ENVOYER PAR EMAIL
-        function envoyerParEmail() {
-            if (!validerFormulaire()) {
-                return;
-            }
-
-            // Récupérer les données
-            const email = document.getElementById('email').value;
-            const valeur = document.getElementById('valeur').value;
-            const quantite = parseFloat(document.getElementById('quantite').value);
-            const coursAchat = parseFloat(document.getElementById('coursAchat').value);
-            const coursVente = parseFloat(document.getElementById('coursVente').value);
-
-            // Effectuer les calculs
-            const montantBrutAchat = quantite * coursAchat;
-            const fraisAchat = calculerFrais(montantBrutAchat);
-            const montantNetAchat = montantBrutAchat + fraisAchat;
-
-            const montantBrutVente = quantite * coursVente;
-            const fraisVente = calculerFrais(montantBrutVente);
-            const montantNetVente = montantBrutVente - fraisVente;
-
-            const gainBrut = montantNetVente - montantNetAchat;
-            const gainNet = gainBrut * 0.85;
-
-            // Préparer le contenu de l'email
-            const sujet = `Simulation Boursière - ${valeur}`;
-            const corpsEmail = `
-Bonjour,
-
-Voici les détails de votre simulation boursière :
-
-VALEUR : ${valeur}
-QUANTITÉ : ${quantite} actions
-COURS D'ACHAT : ${coursAchat.toFixed(2)} MAD
-COURS DE VENTE : ${coursVente.toFixed(2)} MAD
-
-DÉTAIL DES CALCULS :
-- Montant brut d'achat : ${montantBrutAchat.toFixed(2)} MAD
-- Frais d'achat : ${fraisAchat.toFixed(2)} MAD
-- Montant net débursé : ${montantNetAchat.toFixed(2)} MAD
-
-- Montant brut de vente : ${montantBrutVente.toFixed(2)} MAD
-- Frais de vente : ${fraisVente.toFixed(2)} MAD
-- Montant net perçu : ${montantNetVente.toFixed(2)} MAD
-
-- Gain brut : ${gainBrut.toFixed(2)} MAD
-- Frais d'état (15%) : ${(gainBrut * 0.15).toFixed(2)} MAD
-
-🎯 GAIN NET FINAL : ${gainNet.toFixed(2)} MAD
-
-Cette simulation a été générée le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}.
-
-Cordialement,
-Calculateur Boursier
-            `.trim();
-
-            // Créer le lien mailto
-            const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corpsEmail)}`;
-            
-            // Ouvrir le client email
-            window.location.href = mailtoLink;
-
-            // Afficher un message de confirmation
-            const messageDiv = document.getElementById('messageSuccess');
-            messageDiv.innerHTML = `
-                <strong>✅ Email préparé avec succès !</strong><br>
-                Votre client email s'ouvre avec la simulation.<br>
-                Il suffit de cliquer sur "Envoyer".
-            `;
-            messageDiv.style.display = 'block';
-
-            // Cacher le message après 10 secondes
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 10000);
-        }
-
         // Calcul automatique lors de la saisie
         document.addEventListener('DOMContentLoaded', function() {
             const inputs = ['quantite', 'coursAchat', 'coursVente'];
             
             inputs.forEach(function(id) {
                 document.getElementById(id).addEventListener('input', function() {
+                    // Attendre un peu après la saisie
                     setTimeout(function() {
-                        const email = document.getElementById('email').value.trim();
                         const valeur = document.getElementById('valeur').value.trim();
                         const quantite = document.getElementById('quantite').value;
                         const coursAchat = document.getElementById('coursAchat').value;
                         const coursVente = document.getElementById('coursVente').value;
                         
-                        if (email && valeur && quantite && coursAchat && coursVente) {
+                        // Calculer seulement si tous les champs sont remplis et valides
+                        if (valeur && quantite && coursAchat && coursVente) {
                             if (!isNaN(quantite) && !isNaN(coursAchat) && !isNaN(coursVente) &&
                                 parseFloat(quantite) > 0 && parseFloat(coursAchat) > 0 && parseFloat(coursVente) > 0) {
                                 calculerGain();
